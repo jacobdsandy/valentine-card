@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Be My Valentine 💘</title>
+    <style>
+      :root {
+        --bg1: #ffdde1;
+        --bg2: #ee9ca7;
+        --card: rgba(255, 255, 255, 0.88);
+        --text: #2b2b2b;
+        --yes: #ff4d6d;
+        --yesHover: #ff2e57;
+        --no: #6b7280;
+        --noHover: #4b5563;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at 20% 20%, var(--bg1), var(--bg2));
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        color: var(--text);
+        overflow: hidden;
+      }
+
+      .hearts {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.18;
+        filter: blur(0.2px);
+      }
+
+      .heart {
+        position: absolute;
+        font-size: 22px;
+        animation: floatUp linear infinite;
+        transform: translate(-50%, -50%);
+      }
+
+      @keyframes floatUp {
+        from { transform: translate(-50%, 20px); }
+        to   { transform: translate(-50%, -120vh); }
+      }
+
+      .card {
+        width: min(620px, 92vw);
+        background: var(--card);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        padding: 28px 22px;
+        box-shadow:
+          0 20px 60px rgba(0, 0, 0, 0.18),
+          inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        position: relative;
+      }
+
+      .title {
+        font-size: clamp(26px, 4vw, 38px);
+        margin: 0 0 10px;
+        text-align: center;
+        letter-spacing: 0.2px;
+      }
+
+      .subtitle {
+        margin: 0 0 18px;
+        text-align: center;
+        font-size: 16px;
+        opacity: 0.85;
+      }
+
+      .stage {
+        position: relative;
+        height: 240px;
+        margin-top: 14px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.45);
+        border: 1px dashed rgba(0, 0, 0, 0.12);
+        overflow: hidden;
+      }
+
+      .btn {
+        position: absolute;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: none;
+        border-radius: 999px;
+        padding: 14px 18px;
+        font-weight: 700;
+        cursor: pointer;
+        user-select: none;
+        transition: transform 140ms ease, filter 140ms ease, background 140ms ease;
+        box-shadow: 0 12px 26px rgba(0, 0, 0, 0.16);
+        will-change: transform, left, top;
+      }
+
+      .btn:active { transform: translate(-50%, -50%) scale(0.98); }
+
+      .btn-yes {
+        background: var(--yes);
+        color: white;
+      }
+      .btn-yes:hover { background: var(--yesHover); }
+
+      .btn-no {
+        background: var(--no);
+        color: white;
+      }
+      .btn-no:hover { background: var(--noHover); }
+
+      .footer {
+        margin-top: 14px;
+        text-align: center;
+        font-size: 13px;
+        opacity: 0.7;
+      }
+
+      .success {
+        display: none;
+        text-align: center;
+        padding: 10px 4px 2px;
+      }
+
+      .success h2 {
+        margin: 10px 0 6px;
+        font-size: clamp(22px, 3.5vw, 30px);
+      }
+
+      .success p {
+        margin: 0;
+        opacity: 0.88;
+      }
+
+      .confetti {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        display: none;
+      }
+
+      .confetti span {
+        position: absolute;
+        width: 10px;
+        height: 14px;
+        border-radius: 3px;
+        animation: confettiFall linear forwards;
+        opacity: 0.95;
+      }
+
+      @keyframes confettiFall {
+        0% { transform: translateY(-20px) rotate(0deg); }
+        100% { transform: translateY(120vh) rotate(720deg); }
+      }
+
+      .hidden { display: none !important; }
+    </style>
+  </head>
+
+  <body>
+    <div class="hearts" id="hearts"></div>
+    <div class="confetti" id="confetti"></div>
+
+    <main class="card">
+      <h1 class="title" id="title">Hey Emily 💖</h1>
+      <p class="subtitle" id="subtitle">
+        Will you be my Valentine?
+      </p>
+
+      <div class="stage" id="stage" aria-label="Valentine choice area">
+        <button class="btn btn-yes" id="yesBtn" type="button">
+          Yes! 💘
+        </button>
+        <button class="btn btn-no" id="noBtn" type="button">
+          No 🙃
+        </button>
+      </div>
+
+      <div class="success" id="success">
+        <h2>YAY!! 🥰💐</h2>
+        <p>
+          Best decision ever. I love you ❤️
+        </p>
+      </div>
+
+      <div class="footer">
+        Tip: try to click “No” 😈
+      </div>
+    </main>
+
+    <script>
+      // --------- Customize these ----------
+      const NAME = "Emily"; // change to your wife's name
+      const TITLE = `Hey ${NAME} 💖`;
+      const SUBTITLE = "Will you be my Valentine?";
+      const SUCCESS_TITLE = "YAY!! 🥰💐";
+      const SUCCESS_TEXT = "Best decision ever. I love you ❤️";
+      // -----------------------------------
+
+      const stage = document.getElementById("stage");
+      const yesBtn = document.getElementById("yesBtn");
+      const noBtn = document.getElementById("noBtn");
+      const success = document.getElementById("success");
+      const hearts = document.getElementById("hearts");
+      const confetti = document.getElementById("confetti");
+
+      document.getElementById("title").textContent = TITLE;
+      document.getElementById("subtitle").textContent = SUBTITLE;
+
+      // Success text
+      function setSuccessText() {
+        success.querySelector("h2").textContent = SUCCESS_TITLE;
+        success.querySelector("p").textContent = SUCCESS_TEXT;
+      }
+      setSuccessText();
+
+      // Initial positions (percent-based feel)
+      let yesPos = { x: 35, y: 58 }; // % within stage
+      let noPos  = { x: 65, y: 58 }; // %
+
+      // Movement tuning
+      const NO_REPEL_RADIUS = 140;   // px: when cursor is within this, no button flees
+      const NO_REPEL_FORCE  = 18;    // how fast it flees (px per frame-ish)
+      const YES_ATTRACT_RADIUS = 220; // px: when within this, yes button grows/moves toward cursor
+      const YES_ATTRACT_FORCE  = 0.10; // how strongly it moves toward cursor (lerp-ish)
+
+      // Button sizes (base)
+      const YES_BASE_SCALE = 1.0;
+      const YES_MAX_SCALE  = 1.55;
+
+      // Store current pixel positions (relative to stage) for smooth updates
+      let yesPx = { x: 0, y: 0 };
+      let noPx  = { x: 0, y: 0 };
+
+      function clamp(n, min, max) {
+        return Math.max(min, Math.min(max, n));
+      }
+
+      function dist(ax, ay, bx, by) {
+        const dx = ax - bx;
+        const dy = ay - by;
+        return Math.hypot(dx, dy);
+      }
+
+      function placeButtonsFromPercent() {
+        const r = stage.getBoundingClientRect();
+        yesPx.x = (yesPos.x / 100) * r.width;
+        yesPx.y = (yesPos.y / 100) * r.height;
+        noPx.x  = (noPos.x  / 100) * r.width;
+        noPx.y  = (noPos.y  / 100) * r.height;
+
+        yesBtn.style.left = `${yesPos.x}%`;
+        yesBtn.style.top  = `${yesPos.y}%`;
+        noBtn.style.left  = `${noPos.x}%`;
+        noBtn.style.top   = `${noPos.y}%`;
+
+        // Center using transform
+        yesBtn.style.transform = `translate(-50%, -50%) scale(${YES_BASE_SCALE})`;
+        noBtn.style.transform  = `translate(-50%, -50%)`;
+      }
+
+      // Keep buttons inside the stage bounds with some padding
+      function keepInsideStage(px, py, btnEl) {
+        const r = stage.getBoundingClientRect();
+        const br = btnEl.getBoundingClientRect();
+        const padding = 14;
+
+        const halfW = br.width / 2;
+        const halfH = br.height / 2;
+
+        const x = clamp(px, halfW + padding, r.width - halfW - padding);
+        const y = clamp(py, halfH + padding, r.height - halfH - padding);
+        return { x, y };
+      }
+
+      // Convert pixel position -> percent
+      function pxToPercent(px, py) {
+        const r = stage.getBoundingClientRect();
+        return { x: (px / r.width) * 100, y: (py / r.height) * 100 };
+      }
+
+      // Hearts background
+      function spawnHearts(count = 18) {
+        hearts.innerHTML = "";
+        const emojis = ["💗", "💖", "💘", "💞", "💕", "💓"];
+        for (let i = 0; i < count; i++) {
+          const s = document.createElement("span");
+          s.className = "heart";
+          s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+          const left = Math.random() * 100;
+          const duration = 8 + Math.random() * 10;
+          const delay = Math.random() * 6;
+          const size = 16 + Math.random() * 26;
+          s.style.left = `${left}%`;
+          s.style.top = `${100 + Math.random() * 10}%`;
+          s.style.fontSize = `${size}px`;
+          s.style.animationDuration = `${duration}s`;
+          s.style.animationDelay = `${delay}s`;
+          hearts.appendChild(s);
+        }
+      }
+
+      // Confetti
+      function popConfetti() {
+        confetti.innerHTML = "";
+        confetti.style.display = "block";
+        const colors = ["#ff4d6d", "#ffd166", "#06d6a0", "#4cc9f0", "#b5179e", "#ffffff"];
+        const pieces = 90;
+
+        for (let i = 0; i < pieces; i++) {
+          const c = document.createElement("span");
+          const left = Math.random() * 100;
+          const dur = 2.6 + Math.random() * 2.0;
+          const delay = Math.random() * 0.35;
+          const sizeW = 6 + Math.random() * 8;
+          const sizeH = 10 + Math.random() * 14;
+
+          c.style.left = `${left}%`;
+          c.style.top = `${-10 - Math.random() * 20}px`;
+          c.style.width = `${sizeW}px`;
+          c.style.height = `${sizeH}px`;
+          c.style.background = colors[Math.floor(Math.random() * colors.length)];
+          c.style.animationDuration = `${dur}s`;
+          c.style.animationDelay = `${delay}s`;
+          confetti.appendChild(c);
+
+          // Remove after animation
+          setTimeout(() => c.remove(), (dur + delay) * 1000 + 200);
+        }
+
+        setTimeout(() => {
+          confetti.style.display = "none";
+        }, 4200);
+      }
+
+      // Main interaction loop (mousemove)
+      let rafId = null;
+      let latestMouse = null;
+
+      function onMove(e) {
+        const r = stage.getBoundingClientRect();
+        const mx = e.clientX - r.left;
+        const my = e.clientY - r.top;
+
+        latestMouse = { x: mx, y: my };
+        if (!rafId) rafId = requestAnimationFrame(tick);
+      }
+
+      function tick() {
+        rafId = null;
+        if (!latestMouse) return;
+
+        const { x: mx, y: my } = latestMouse;
+
+        // --- NO button flees ---
+        const dNo = dist(mx, my, noPx.x, noPx.y);
+        if (dNo < NO_REPEL_RADIUS) {
+          // Direction away from cursor
+          const dx = noPx.x - mx;
+          const dy = noPx.y - my;
+          const len = Math.max(0.001, Math.hypot(dx, dy));
+          const ux = dx / len;
+          const uy = dy / len;
+
+          // Stronger as you get closer
+          const strength = (1 - dNo / NO_REPEL_RADIUS) * NO_REPEL_FORCE;
+          noPx.x += ux * strength;
+          noPx.y += uy * strength;
+
+          // Keep inside
+          const safe = keepInsideStage(noPx.x, noPx.y, noBtn);
+          noPx.x = safe.x;
+          noPx.y = safe.y;
+
+          // Apply to DOM
+          const p = pxToPercent(noPx.x, noPx.y);
+          noPos = p;
+          noBtn.style.left = `${noPos.x}%`;
+          noBtn.style.top = `${noPos.y}%`;
+        }
+
+        // --- YES button attracts + grows ---
+        const dYes = dist(mx, my, yesPx.x, yesPx.y);
+        const within = dYes < YES_ATTRACT_RADIUS;
+
+        // Move toward cursor a little (lerp-ish)
+        if (within) {
+          yesPx.x += (mx - yesPx.x) * YES_ATTRACT_FORCE;
+          yesPx.y += (my - yesPx.y) * YES_ATTRACT_FORCE;
+
+          const safeY = keepInsideStage(yesPx.x, yesPx.y, yesBtn);
+          yesPx.x = safeY.x;
+          yesPx.y = safeY.y;
+
+          const p = pxToPercent(yesPx.x, yesPx.y);
+          yesPos = p;
+          yesBtn.style.left = `${yesPos.x}%`;
+          yesBtn.style.top = `${yesPos.y}%`;
+        }
+
+        // Scale based on proximity (closer = bigger)
+        const t = clamp(1 - dYes / YES_ATTRACT_RADIUS, 0, 1);
+        const scale = YES_BASE_SCALE + t * (YES_MAX_SCALE - YES_BASE_SCALE);
+        yesBtn.style.transform = `translate(-50%, -50%) scale(${scale})`;
+
+        // Slightly dim the No button when you're close to Yes (fun/psychological)
+        noBtn.style.filter = within ? "brightness(0.95)" : "none";
+      }
+
+      // Clicking "No" also makes it hop (in case someone taps on mobile)
+      function hopNo() {
+        const r = stage.getBoundingClientRect();
+        noPx.x = Math.random() * r.width;
+        noPx.y = Math.random() * r.height;
+        const safe = keepInsideStage(noPx.x, noPx.y, noBtn);
+        noPx.x = safe.x;
+        noPx.y = safe.y;
+
+        const p = pxToPercent(noPx.x, noPx.y);
+        noPos = p;
+        noBtn.style.left = `${noPos.x}%`;
+        noBtn.style.top = `${noPos.y}%`;
+      }
+
+      // Yes click -> success screen
+      function acceptValentine() {
+        popConfetti();
+        stage.classList.add("hidden");
+        success.style.display = "block";
+        document.querySelector(".footer").textContent = "Happy Valentine’s Day 💝";
+      }
+
+      // Setup
+      spawnHearts();
+      placeButtonsFromPercent();
+
+      // Re-layout on resize
+      window.addEventListener("resize", () => placeButtonsFromPercent());
+
+      // Mouse + touch support
+      stage.addEventListener("mousemove", onMove, { passive: true });
+      stage.addEventListener("touchmove", (e) => {
+        const t = e.touches?.[0];
+        if (!t) return;
+        onMove({ clientX: t.clientX, clientY: t.clientY });
+      }, { passive: true });
+
+      noBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        hopNo();
+      });
+
+      yesBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        acceptValentine();
+      });
+    </script>
+  </body>
+</html>
